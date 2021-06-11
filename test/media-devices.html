@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Media Devices</title>
+    <style>
+        * {
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        h1 {
+            padding: 20px 0px;
+        }
+
+        h2 {
+            padding: 5px;
+            border-left: solid 5px red;
+            margin-bottom: 20px;
+        }
+
+        figure {
+            box-shadow: 1px 1px 5px gray;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        audio, video {
+            width: 100%;
+        }
+
+        video {
+            transform: rotateY(180deg);
+            -webkit-transform: rotateY(180deg); /* Safari and Chrome */
+            -moz-transform: rotateY(180deg); /* Firefox */
+        }
+
+        hr {
+            margin: 10px 0px;
+        }
+
+        @media screen and (min-width: 720px) {
+            body {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section id="container">
+        <section id="audio-container">
+            <h2>Audio</h1>
+        </section>
+
+        <section id="video-container">
+            <h2>Video</h1>
+        </section>
+    </section>
+    
+    <script>
+        const container = document.getElementById('container');
+        const audioContainer = document.getElementById('audio-container');
+        const videoContainer = document.getElementById('video-container');
+
+        navigator.mediaDevices.enumerateDevices().then(function (devices) {
+            console.log(devices);
+
+            devices.forEach(function (device) {
+                const figure = document.createElement('figure');
+                const figcaption = document.createElement('figcaption');
+
+                if(device.deviceId != 'default') {
+                    switch(device.kind) {
+                        case 'audioinput':
+                        case 'audiooutput':
+                            const audio = document.createElement('audio');
+                                audio.dataset.label = device.label;
+                                audio.dataset.deviceId = device.deviceId;
+                                audio.dataset.groupId = device.groupId;
+                            figure.appendChild(audio);
+                            
+                            figcaption.textContent = device.label;
+                            figure.appendChild(figcaption);
+
+                            audioContainer.appendChild(figure);
+
+                            navigator.mediaDevices.getUserMedia({
+                                video: false,
+                                audio: {
+                                    deviceId: device.deviceId
+                                }
+                            }).then(function(mediaStream) {
+                                audio.srcObject = mediaStream;
+                                audio.onloadedmetadata = function(event) {
+                                    audio.play();
+                                };
+                                audio.controls = true;
+                                audio.muted = true;
+                            }).catch(function(e) {
+                                console.error(e);
+                            });
+                        break;
+                        case 'videoinput':
+                            const video = document.createElement('video');
+                                video.dataset.label = device.label;
+                                video.dataset.deviceId = device.deviceId;
+                                video.dataset.groupId = device.groupId;
+                            figure.appendChild(video);
+
+                            figcaption.textContent = device.label;
+                            figure.appendChild(figcaption);
+
+                            videoContainer.appendChild(figure);
+
+                            navigator.mediaDevices.getUserMedia({
+                                video: {
+                                    deviceId: device.deviceId
+                                },
+                                audio: false
+                            }).then(function(mediaStream) {
+                                video.srcObject = mediaStream;
+                                video.onloadedmetadata = function(event) {
+                                    video.play();
+                                };
+                                // video.controls = true;
+                            }).catch(function(e) {
+                                console.error(e);
+                            });
+                        break;
+                        default:
+                            console.log(device);
+                        break;
+                    }
+                } else {
+                    console.log(device);
+                }
+            });
+        }).catch(function (err) {
+            console.error(err);
+        });
+    </script>
+</body>
+</html>
